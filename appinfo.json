@@ -1,0 +1,24 @@
+{
+    "appKeys": {
+        "dummy": 0
+    },
+    "capabilities": [
+        ""
+    ],
+    "companyName": "Chris Metropolis",
+    "longName": "Old Fogies Can't See Worth S***",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "Old Fogies",
+    "targetPlatforms": [
+        "basalt"
+    ],
+    "uuid": "25becbb7-c0bc-4180-82b6-b36f1bf894c7",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
