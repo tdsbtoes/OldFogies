@@ -3,8 +3,8 @@
 #define COLORS       true
 #define ANTIALIASING true
 
-#define HAND_MARGIN  -100
 #define FINAL_RADIUS 32
+#define MINUTE_RADIUS 132
 
 #define ANIMATION_DURATION 500
 #define ANIMATION_DELAY    600
@@ -20,6 +20,8 @@ static Layer *s_canvas_layer;
 static GPoint s_center;
 static Time s_last_time, s_anim_time;
 static int s_radius = 0;
+static int minute_stroke = 5;
+static int border_stroke = 4;
 static bool s_animating = true;
 static bool s_startup = false;
 
@@ -83,7 +85,7 @@ static uint8_t face_colours[] = {
 };
 
 
-static int s_colour_a;
+static int s_colour_a = -1;
 static int s_colour_b;
 static uint8_t main_colour;
 static uint8_t minute_colour;
@@ -123,15 +125,12 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
   s_last_time.minutes = tick_time->tm_min;
 
 	if (s_last_time.minutes == 0 || s_animating) {
-	 /* for(int i = 0; i < 3; i++) {
-		s_color_channels[i] = s_minutes_color[i] ? s_minutes_color[i] : rand() % 256;
-		s_minutes_color[i] = rand() % 256;
-	  }*/
-		if (s_animating) {
+		
+		if (s_animating && s_colour_a == -1) {
 			// start color index randomly
-			s_colour_a = rand() % 50;
+			s_colour_a = rand() % 49;
 		}
-		else {
+		else if (!s_animating) {
 			s_colour_a++;
 		}
 		
@@ -144,10 +143,9 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
 		if (s_colour_b > 49) {
 			s_colour_b = 0;
 		}
-
-		//s_colour_a = !s_animating ? face_colours[s_colour_b] : face_colours[s_colour_a];
-		//s_colour_b = face_colours[s_colour_b];
+		//APP_LOG(APP_LOG_LEVEL_DEBUG, "%d, %d", s_colour_a, s_colour_b);
 	}
+	
   // Redraw
   if(s_canvas_layer) {
     layer_mark_dirty(s_canvas_layer);
@@ -166,8 +164,6 @@ static void update_proc(Layer *layer, GContext *ctx) {
 
   // hour text
 	if (!s_animating) {
-
-
 		// Create a long-lived buffer
 		static char buffer[] = "00";
 
@@ -205,68 +201,82 @@ static void update_proc(Layer *layer, GContext *ctx) {
   
 
   graphics_context_set_antialiased(ctx, ANTIALIASING);
-
 	
-	// Adjust for minutes through the hour
-  //float minute_angle = TRIG_MAX_ANGLE * mode_time.minutes / 60;
+	
 	// Plot hands
 	GPoint minute_hand = (GPoint) {
-		.x = (int16_t)(sin_lookup(TRIG_MAX_ANGLE * mode_time.minutes / 60) * (int32_t)(s_radius - HAND_MARGIN) / TRIG_MAX_RATIO) + 72,
-		.y = (int16_t)(-cos_lookup(TRIG_MAX_ANGLE * mode_time.minutes / 60) * (int32_t)(s_radius - HAND_MARGIN) / TRIG_MAX_RATIO) + 84,
+		.x = (int16_t)(sin_lookup(TRIG_MAX_ANGLE * mode_time.minutes / 60) * (int32_t)MINUTE_RADIUS / TRIG_MAX_RATIO) + s_center.x,
+		.y = (int16_t)(-cos_lookup(TRIG_MAX_ANGLE * mode_time.minutes / 60) * (int32_t)MINUTE_RADIUS / TRIG_MAX_RATIO) + s_center.y,
 	};
 
-	if(s_radius > HAND_MARGIN) {
-		graphics_context_set_stroke_width(ctx, 9);
-		graphics_draw_line(ctx, s_center, minute_hand);
-	}
 	
-	
-	// Fill in minute color
+	// Fill in minute color (aka s_colour_b)
 	GPathInfo s_min_points =  {
 		  .num_points = 3,
-		  .points = (GPoint []) {{72, 0}, {72, 84}, {minute_hand.x, minute_hand.y}}
+		  .points = (GPoint []) {{72, -1}, {72, 84}, {minute_hand.x, minute_hand.y}}
 		};
 	
-	if (mode_time.minutes >= 0 && mode_time.minutes < 8) {
-		// use first values
-	}
-	else if (mode_time.minutes > 7 && mode_time.minutes < 23) {
+	if (mode_time.minutes > 7 && mode_time.minutes < 23) {
+		// add in the top-right corner
 		s_min_points.num_points = 4;
-		s_min_points.points = (GPoint []) {{72, 0}, {72, 84}, {minute_hand.x, minute_hand.y}, {144, 0}};
+		s_min_points.points = (GPoint []) {{72, -1}, {72, 84}, {minute_hand.x, minute_hand.y}, {145, -1}};
 	}
 	else if (mode_time.minutes > 22 && mode_time.minutes < 38) {
+		// add in bottom-right and top-right
 		s_min_points.num_points = 5,
-		s_min_points.points = (GPoint []) {{72, 0}, {72, 84}, {minute_hand.x, minute_hand.y}, {144, 168}, {144, 0}};
+		s_min_points.points = (GPoint []) {{72, -1}, {72, 84}, {minute_hand.x, minute_hand.y}, {145, 169}, {145, -1}};
 	}
 	else if (mode_time.minutes > 37 && mode_time.minutes < 52) {
+		// bottom-left, bottom-right & top-right
 		 s_min_points.num_points = 6,
-		s_min_points.points = (GPoint []) {{72, 0}, {72, 84}, {minute_hand.x, minute_hand.y}, {0, 168}, {144, 168}, {144, 0}};
+		s_min_points.points = (GPoint []) {{72, -1}, {72, 84}, {minute_hand.x, minute_hand.y}, {-1, 169}, {145, 169}, {145, -1}};
 	}
-	else if (mode_time.minutes > 51 && mode_time.minutes <= 59) {//*/
+	else if (mode_time.minutes > 51 && mode_time.minutes <= 59) {
+		//*/ going negative seems to help along the left edge - draw to all four corners
 		s_min_points.num_points = 7,
-		s_min_points.points = (GPoint []) {{72, 0}, {72, 84}, {minute_hand.x, minute_hand.y}, {0, 0}, {0, 168}, {144, 168}, {144, 0}};
+		s_min_points.points = (GPoint []) {{72, -1}, {72, 84}, {minute_hand.x, minute_hand.y}, {-1, -1}, {-1, 169}, {145, 169}, {145, -1}};
 	}
 	
 	// set up
 	s_min_path = gpath_create(&s_min_points);
 	
 	// fill in minute area
-	//graphics_context_set_fill_color(ctx, GColorFromRGB(s_minutes_color[0], s_minutes_color[1], s_minutes_color[2]));
-	//graphics_context_set_fill_color(ctx, GColorWhite);
 	minute_colour = face_colours[s_colour_b];
 	graphics_context_set_fill_color(ctx, (GColor)minute_colour);
   	gpath_draw_filled(ctx, s_min_path);
 	
+	// Draw white circle outline
+	graphics_context_set_stroke_color(ctx, GColorWhite);
+	graphics_context_set_stroke_width(ctx, minute_stroke + border_stroke);
+  	graphics_draw_circle(ctx, s_center, s_radius);
+	
+	// draw minute line
+	if (!s_animating) {
+		graphics_context_set_stroke_color(ctx, GColorWhite);
+		graphics_context_set_stroke_width(ctx, minute_stroke + border_stroke);
+		graphics_draw_line(ctx, s_center, minute_hand);
+		
+		graphics_context_set_stroke_color(ctx, GColorBlack);
+		graphics_context_set_stroke_width(ctx, minute_stroke);
+		graphics_draw_line(ctx, s_center, minute_hand);
+	}
+	
+	
+	
+	
 	// White clockface
 	graphics_context_set_fill_color(ctx, GColorWhite);
 	graphics_fill_circle(ctx, s_center, s_radius);
-
-  	// Draw outline
-	graphics_context_set_stroke_width(ctx, 5);
+	
+  	
+	// draw black circle outline
+	graphics_context_set_stroke_color(ctx, GColorBlack);
+	graphics_context_set_stroke_width(ctx, minute_stroke);
   	graphics_draw_circle(ctx, s_center, s_radius);
 
 	
 	// date box
+	graphics_context_set_stroke_color(ctx, GColorBlack);
 	graphics_context_set_stroke_width(ctx, 1);
 	graphics_fill_rect(ctx, GRect(40, 131, 64, 24), 10, GCornersAll);
 	graphics_draw_round_rect(ctx, GRect(40, 131, 64, 24), 10);
