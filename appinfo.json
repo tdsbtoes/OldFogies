@@ -1,9 +1,21 @@
 {
     "appKeys": {
-        "dummy": 0
+        "KEY_BATTERY_COLOUR": 1,
+        "KEY_BATTERY_SHOW": 2,
+        "KEY_DATE_FILL_COLOUR": 11,
+        "KEY_DATE_SHOW": 5,
+        "KEY_DATE_STROKE_COLOUR": 12,
+        "KEY_DATE_TEXT_COLOUR": 10,
+        "KEY_HOUR_FILL_COLOUR": 8,
+        "KEY_HOUR_STROKE_COLOUR": 7,
+        "KEY_HOUR_TEXT_COLOUR": 9,
+        "KEY_LANG": 4,
+        "KEY_MINUTE_STROKE_COLOUR": 6,
+        "KEY_OUTLINE_COLOUR": 0,
+        "KEY_TIME_COLOUR": 3
     },
     "capabilities": [
-        ""
+        "configurable"
     ],
     "companyName": "Chris Metropolis",
     "longName": "Old Fogies Can't See Worth S***",
@@ -17,7 +29,7 @@
         "basalt"
     ],
     "uuid": "54f2e0ed-1bce-48ea-8420-060024d40172",
-    "versionLabel": "1.5",
+    "versionLabel": "1.61",
     "watchapp": {
         "watchface": true
     }

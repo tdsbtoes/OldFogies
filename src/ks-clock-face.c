@@ -9,6 +9,23 @@
 #define ANIMATION_DURATION 500
 #define ANIMATION_DELAY    600
 
+// Storage Keys
+#define KEY_OUTLINE_COLOUR 0
+#define KEY_BATTERY_COLOUR 1
+#define KEY_BATTERY_SHOW 2
+#define KEY_TIME_COLOUR 3
+#define KEY_LANG 4
+#define KEY_DATE_SHOW 5
+#define KEY_MINUTE_STROKE_COLOUR 6
+#define KEY_HOUR_STROKE_COLOUR 7
+#define KEY_HOUR_FILL_COLOUR 8
+#define KEY_HOUR_TEXT_COLOUR 9
+#define KEY_DATE_TEXT_COLOUR 10
+#define KEY_DATE_FILL_COLOUR 11
+#define KEY_DATE_STROKE_COLOUR 12
+
+
+
 // Languages
 #define LANG_DUTCH 0
 #define LANG_ENGLISH 1
@@ -38,73 +55,77 @@ static bool s_startup = false;
 static TextLayer *s_hour_digit;
 static TextLayer *s_day_date;
 static char s_day_buffer[12];
-
 static GPath *s_min_path;
 
-static uint8_t battery_colours[] = {
-	GColorRedARGB8,
-	GColorYellowARGB8,
-	GColorShockingPinkARGB8,
-	GColorLightGrayARGB8
-};
-
-static uint8_t face_colours[] = {
-	GColorIslamicGreenARGB8,
-		GColorInchwormARGB8,
-	GColorOrangeARGB8,
-		GColorYellowARGB8,
-	GColorDarkCandyAppleRedARGB8,
-		GColorRedARGB8,
-	GColorIndigoARGB8,
-		GColorMagentaARGB8,
-	GColorDarkGreenARGB8,
-		GColorJaegerGreenARGB8,
-	GColorBlueMoonARGB8,
-		GColorCyanARGB8,
-	GColorImperialPurpleARGB8,
-		GColorVeryLightBlueARGB8,
-	GColorPurpleARGB8,
-		GColorShockingPinkARGB8,
-	GColorDarkGrayARGB8,
-		GColorLightGrayARGB8,
-	GColorWindsorTanARGB8,
-		GColorChromeYellowARGB8,
+static uint8_t all_colours[] = {
 	GColorArmyGreenARGB8,
-		GColorLimerickARGB8,
-	GColorCobaltBlueARGB8,
-		GColorCadetBlueARGB8,
-	GColorElectricUltramarineARGB8,
-		GColorBabyBlueEyesARGB8,
-	GColorJazzberryJamARGB8,
-		GColorFashionMagentaARGB8,
-	GColorOxfordBlueARGB8,
-		GColorLibertyARGB8,
-	GColorDukeBlueARGB8,
-		GColorVividCeruleanARGB8,
-	GColorSunsetOrangeARGB8,
-		GColorMelonARGB8,
-	GColorVividVioletARGB8,
-		GColorRichBrilliantLavenderARGB8,
-	GColorLavenderIndigoARGB8,
-		GColorBrilliantRoseARGB8,
-	GColorTiffanyBlueARGB8,
-		GColorElectricBlueARGB8,
-	GColorRoseValeARGB8,
-		GColorFollyARGB8,
-	GColorMayGreenARGB8,
-		GColorMediumAquamarineARGB8,
-	GColorMalachiteARGB8,
-		GColorSpringBudARGB8,
-	GColorKellyGreenARGB8,
-		GColorMintGreenARGB8,
-	GColorBulgarianRoseARGB8,
-		GColorPurpureusARGB8,
+	GColorBabyBlueEyesARGB8,
 	GColorBlackARGB8,
-	GColorWhiteARGB8
+	GColorBlueARGB8,
+	GColorBlueMoonARGB8,
+	GColorBrassARGB8,				//5
+	GColorBrightGreenARGB8,
+	GColorBrilliantRoseARGB8,
+	GColorBulgarianRoseARGB8,
+	GColorCadetBlueARGB8,
+	GColorCelesteARGB8,				//10
+	GColorChromeYellowARGB8,
+	GColorCobaltBlueARGB8,
+	GColorCyanARGB8,
+	GColorDarkCandyAppleRedARGB8,
+	GColorDarkGrayARGB8,			//15
+	GColorDarkGreenARGB8,
+	GColorDukeBlueARGB8,
+	GColorElectricBlueARGB8,
+	GColorElectricUltramarineARGB8,
+	GColorFashionMagentaARGB8,		//20
+	GColorFollyARGB8,
+	GColorGreenARGB8,
+	GColorIcterineARGB8,
+	GColorImperialPurpleARGB8,
+	GColorInchwormARGB8,			//25
+	GColorIndigoARGB8,
+	GColorIslamicGreenARGB8,
+	GColorJaegerGreenARGB8,
+	GColorJazzberryJamARGB8,
+	GColorKellyGreenARGB8,			//30
+	GColorLavenderIndigoARGB8,
+	GColorLibertyARGB8,
+	GColorLightGrayARGB8,
+	GColorLimerickARGB8,
+	GColorMagentaARGB8,				//35
+	GColorMalachiteARGB8,
+	GColorMayGreenARGB8,
+	GColorMediumAquamarineARGB8,
+	GColorMediumSpringGreenARGB8,
+	GColorMelonARGB8,				//40
+	GColorMidnightGreenARGB8,
+	GColorMintGreenARGB8,
+	GColorOrangeARGB8,
+	GColorOxfordBlueARGB8,
+	GColorPastelYellowARGB8,		//45
+	GColorPictonBlueARGB8,
+	GColorPurpleARGB8,
+	GColorPurpureusARGB8,
+	GColorRajahARGB8,
+	GColorRedARGB8, 				//50
+	GColorRichBrilliantLavenderARGB8,
+	GColorRoseValeARGB8,
+	GColorScreaminGreenARGB8,
+	GColorShockingPinkARGB8,
+	GColorSpringBudARGB8,			//55
+	GColorSunsetOrangeARGB8,
+	GColorTiffanyBlueARGB8,
+	GColorVeryLightBlueARGB8,
+	GColorVividCeruleanARGB8,
+	GColorVividVioletARGB8,			//60
+	GColorWhiteARGB8,
+	GColorWindsorTanARGB8,
+	GColorYellowARGB8
 };
 
 // first bg colour index
-static int s_colour_a = -1;
+static int s_colour_a;
 
 // second bg colour index
 static int s_colour_b;
@@ -118,19 +139,48 @@ static bool battery_charging;
 static BatteryChargeState charge_state;
 
 // user choices - set defaults here
-static int user_lang = 1; 							//default to english
+static int user_lang = 1; 							//default to english ??? does strftime do localization??
 static bool user_show_battery = true;				//default to ON
 static bool user_show_date = true;					//default to ON
-static int user_circle_minute_stroke_colour = 50; 	//default black (the 50 may change as the list changes)
-static int user_circle_minute_outline_colour = 51; 	//default white
-static int user_battery_colour = 0; 				//default red = 0
-static int user_circle_fill = 51; 					//default white
-static int user_hour_text_colour = 50; 				//default black
-static int user_date_fill = 51; 					//default white
-static int user_date_text_colour = 50; 				//default black
-static int user_date_stroke_colour = 50;			//default black
-static int user_date_outline_colour = 51;			//default white
+static int user_minute_stroke_colour = 2; 			//default black (in "all-colours")
+//static int user_hour_minute_outline_colour = 61; 	//default white
+static int user_battery_colour = 50; 				//default red
+static int user_hour_fill = 61; 					//default white
+static int user_hour_stroke_colour = 2; 			//default black
+static int user_hour_text_colour = 2; 				//default black
+static int user_date_fill = 61; 					//default white
+static int user_date_text_colour = 2; 				//default black
+static int user_date_stroke_colour = 2;				//default black
+static int user_outline_colour = 61;				//default white
 
+
+static int user_time_colour[] = {44,59,24,35,15,33,43,63,16,6,3,13,0,34,19,1,62,11,50,40,14,54,17,9}; //**** indices for "all_colours"
+/*
+static int user_time_colour_00 = 44;					//colour for 12am
+static int user_time_colour_01 = 59;					//colour for 1am
+static int user_time_colour_02 = 24;					//colour for 2am
+static int user_time_colour_03 = 35;					//colour for 3am
+static int user_time_colour_04 = 15;					//colour for 4am
+static int user_time_colour_05 = 33;					//colour for 5am
+static int user_time_colour_06 = 43;					//colour for 6am
+static int user_time_colour_07 = 63;					//colour for 7am
+static int user_time_colour_08 = 16;					//colour for 8am
+static int user_time_colour_09 = 6;						//colour for 9am
+static int user_time_colour_10 = 3;						//colour for 10am
+static int user_time_colour_11 = 13;					//colour for 11am
+static int user_time_colour_12 = 0;						//colour for 12pm
+static int user_time_colour_13 = 34;					//colour for 1pm
+static int user_time_colour_14 = 19;					//colour for 2pm
+static int user_time_colour_15 = 1;						//colour for 3pm
+static int user_time_colour_16 = 62;					//colour for 4pm
+static int user_time_colour_17 = 11;					//colour for 5pm
+static int user_time_colour_18 = 50;					//colour for 6pm
+static int user_time_colour_19 = 40;					//colour for 7pm
+static int user_time_colour_20 = 14;					//colour for 8pm
+static int user_time_colour_21 = 54;					//colour for 9pm
+static int user_time_colour_22 = 17;					//colour for 10pm
+static int user_time_colour_23 = 9;						//colour for 11pm
+*/
 
 // common coordinates
 static GPoint screen_centre = { 72, 84 };
@@ -159,7 +209,7 @@ const char weekDay[LANG_MAX][7][6] = {
 
 void batteryLineArc(GContext *ctx, float start_angle, float end_angle, GPoint centre, int radius, int thickness){
 	
-	float minus_bit = (radius - thickness/2 + 0.5); //add 0.5 for the int casting, later
+	float minus_bit = radius - thickness/2 + 0.5;// + (user_battery_colour <= 1 ? 0.5 : 0); //add 0.5 for the int casting, later !!! dark colours like 1.0, light better with 0.5
 	float add_bit = (radius + thickness/2 + 0.5); 
 	
 	graphics_context_set_stroke_width(ctx, 1);
@@ -225,23 +275,15 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
 
 	if (s_last_time.minutes == 0 || s_animating) {
 		
-		if (s_animating && s_colour_a == -1) {
-			// start color index randomly
-			s_colour_a = rand() % 49;
-		}
-		else if (!s_animating) {
-			s_colour_a++;
-		}
-		
-		if (s_colour_a > 49) {
-			s_colour_a = 0;
-		}
+		//**** new, time-based method
+		s_colour_a = tick_time->tm_hour;
 		
 		s_colour_b = s_colour_a + 1;
 		
-		if (s_colour_b > 49) {
+		if (s_colour_b > 23) {
 			s_colour_b = 0;
 		}
+		
 		//APP_LOG(APP_LOG_LEVEL_DEBUG, "%d, %d", s_colour_a, s_colour_b);
 	}
 	
@@ -267,6 +309,7 @@ static void update_proc(Layer *layer, GContext *ctx) {
 	time_t temp = time(NULL); 
 	struct tm *tick_time = localtime(&temp);
 	
+	graphics_context_set_antialiased(ctx, ANTIALIASING);
 
   	// hour text
 	if (!s_animating) {
@@ -292,21 +335,20 @@ static void update_proc(Layer *layer, GContext *ctx) {
 		}
 
 		// Display this time on the TextLayer
+		text_layer_set_text_color(s_hour_digit, (GColor)all_colours[user_hour_text_colour]);
 		text_layer_set_text(s_hour_digit, buffer);
 	}
 	
 	// Color background for first colour
-	main_colour = face_colours[s_colour_a];
+	main_colour = all_colours[user_time_colour[s_colour_a]]; //all_colours[s_colour_a];
 	graphics_context_set_fill_color(ctx, (GColor)main_colour);
 	graphics_fill_rect(ctx, GRect(0, 0, 144, 168), 0, GCornerNone);
   
-	// minute-hand and circle colour
-  	graphics_context_set_stroke_color(ctx, GColorBlack);
-
-  	graphics_context_set_antialiased(ctx, ANTIALIASING);
+	
+  	
 	
 	
-	// Plot hands
+	// Plot minute line
 	GPoint minute_hand = (GPoint) {
 		.x = (int16_t)(sin_lookup(TRIG_MAX_ANGLE * mode_time.minutes / 60) * (int32_t)MINUTE_RADIUS / TRIG_MAX_RATIO) + s_center.x,
 		.y = (int16_t)(-cos_lookup(TRIG_MAX_ANGLE * mode_time.minutes / 60) * (int32_t)MINUTE_RADIUS / TRIG_MAX_RATIO) + s_center.y,
@@ -374,22 +416,23 @@ static void update_proc(Layer *layer, GContext *ctx) {
 	s_min_path = gpath_create(&s_min_points);
 	
 	// fill in minute area
-	minute_colour = face_colours[s_colour_b];
+	minute_colour = all_colours[user_time_colour[s_colour_b]]; //all_colours[s_colour_b];
 	graphics_context_set_fill_color(ctx, (GColor)minute_colour);
   	gpath_draw_filled(ctx, s_min_path);
 	
-	// Draw white circle outline
-	graphics_context_set_stroke_color(ctx, GColorWhite);
+	// Draw hour circle outline
+	graphics_context_set_stroke_color(ctx, (GColor)all_colours[user_outline_colour]);//white
 	graphics_context_set_stroke_width(ctx, minute_stroke + border_stroke);
   	graphics_draw_circle(ctx, s_center, s_radius);
 	
 	// draw minute line
 	if (!s_animating) {
-		graphics_context_set_stroke_color(ctx, GColorWhite);
+		//outline first, wider
+		graphics_context_set_stroke_color(ctx, (GColor)all_colours[user_outline_colour]); //white
 		graphics_context_set_stroke_width(ctx, minute_stroke + border_stroke);
 		graphics_draw_line(ctx, s_center, minute_hand);
 		
-		graphics_context_set_stroke_color(ctx, GColorBlack);
+		graphics_context_set_stroke_color(ctx, (GColor)all_colours[user_minute_stroke_colour]);
 		graphics_context_set_stroke_width(ctx, minute_stroke);
 		graphics_draw_line(ctx, s_center, minute_hand);
 	}
@@ -398,66 +441,71 @@ static void update_proc(Layer *layer, GContext *ctx) {
 	
 	
 	// fill clockface
-	graphics_context_set_fill_color(ctx, GColorWhite);
+	graphics_context_set_fill_color(ctx, (GColor)all_colours[user_hour_fill]);
 	graphics_fill_circle(ctx, s_center, s_radius);
 	
   	
-	// draw black circle 
-	graphics_context_set_stroke_color(ctx, GColorBlack);
+	// draw hour circle 
+	graphics_context_set_stroke_color(ctx, (GColor)all_colours[user_hour_stroke_colour]);
 	graphics_context_set_stroke_width(ctx, minute_stroke);
   	graphics_draw_circle(ctx, s_center, s_radius);
 
-	
-	// date box fill
-	graphics_fill_rect(ctx, GRect(40, 131, 64, 24), 10, GCornersAll);
-	
-	// date box stroke
-	graphics_context_set_stroke_color(ctx, GColorBlack);
-	graphics_context_set_stroke_width(ctx, 1);
-	graphics_draw_round_rect(ctx, GRect(40, 131, 64, 24), 10);
-	
-	// date box content -- weekDay[user_lang][tick_time->tm_wday]
-	strftime(s_day_buffer, sizeof("ddd dd"), "%a %d", tick_time);
-	text_layer_set_text(s_day_date, s_day_buffer);
+	if (user_show_date) {
+		// date box fill
+		graphics_context_set_fill_color(ctx, (GColor)all_colours[user_date_fill]);
+		graphics_fill_rect(ctx, GRect(40, 131, 64, 24), 10, GCornersAll);
+
+		// date box stroke
+		graphics_context_set_stroke_color(ctx, (GColor)all_colours[user_date_stroke_colour]);
+		graphics_context_set_stroke_width(ctx, 1);
+		graphics_draw_round_rect(ctx, GRect(40, 131, 64, 24), 10);
+
+		// date box content -- weekDay[user_lang][tick_time->tm_wday]
+		strftime(s_day_buffer, sizeof("ddd dd"), "%a %d", tick_time);
+		text_layer_set_text_color(s_day_date, (GColor)all_colours[user_date_text_colour]);
+		text_layer_set_text(s_day_date, s_day_buffer);
+	}
+	else {
+		// text will stick around otherwise
+		text_layer_set_text(s_day_date, "");
+	}
 	
 	// if showing battery level, draw arc
-	if (user_show_battery) {
-		graphics_context_set_stroke_color(ctx, (GColor)battery_colours[user_battery_colour]);
+	if (user_show_battery) {// && !battery_charging) {
+		graphics_context_set_stroke_color(ctx, (GColor)all_colours[user_battery_colour]);
 		
-		if (!battery_charging) {
-			b_angle = (int)((360 * ((100 - battery_level)) / 100) + 0.5);
-			batteryLineArc(ctx, 0, b_angle, s_center, s_radius, minute_stroke);
-		}
+		b_angle = (int)((360 * ((100 - battery_level)) / 100) + 0.5); // +0.5 is a float to int trick
+		batteryLineArc(ctx, 0, b_angle, s_center, s_radius, minute_stroke);
 	}
 	
 	s_startup = false;
 	
-}
+} // end update_proc
 
 
 
 
 static void window_load(Window *window) {
-  Layer *window_layer = window_get_root_layer(window);
-  GRect window_bounds = layer_get_bounds(window_layer);
+	Layer *window_layer = window_get_root_layer(window);
+	GRect window_bounds = layer_get_bounds(window_layer);
 
-  s_center = grect_center_point(&window_bounds);
+	s_center = grect_center_point(&window_bounds);
 
-  s_canvas_layer = layer_create(window_bounds);
-  layer_set_update_proc(s_canvas_layer, update_proc);
-  layer_add_child(window_layer, s_canvas_layer);
+	s_canvas_layer = layer_create(window_bounds);
+	layer_set_update_proc(s_canvas_layer, update_proc);
+	layer_add_child(window_layer, s_canvas_layer);
 	
 	//battery_state_service_subscribe(battery_handler);
 	
 	// Create time TextLayer
 	s_hour_digit = text_layer_create(GRect(41, 58, 62, 50));
 	text_layer_set_background_color(s_hour_digit, GColorClear);
-	text_layer_set_text_color(s_hour_digit, GColorBlack);
+	
 	
 	// create day/date layer
 	s_day_date = text_layer_create(GRect(40, 130, 64, 24));
 	text_layer_set_background_color(s_day_date, GColorClear);
-	text_layer_set_text_color(s_day_date, GColorBlack);
+	
 	
 	// Improve the layout to be more like a watchface
 	text_layer_set_font(s_hour_digit, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
@@ -472,12 +520,15 @@ static void window_load(Window *window) {
 	
 }
 
+
+
 static void window_unload(Window *window) {
   	text_layer_destroy(s_hour_digit);
 	text_layer_destroy(s_day_date);
 	layer_destroy(s_canvas_layer);
 	battery_state_service_unsubscribe();
 	tick_timer_service_unsubscribe();
+	
 }
 
 /*********************************** App **************************************/
@@ -486,11 +537,15 @@ static int anim_percentage(AnimationProgress dist_normalized, int max) {
   return (int)(float)(((float)dist_normalized / (float)ANIMATION_NORMALIZED_MAX) * (float)max);
 }
 
+
+
 static void radius_update(Animation *anim, AnimationProgress dist_normalized) {
   s_radius = anim_percentage(dist_normalized, FINAL_RADIUS);
 
   layer_mark_dirty(s_canvas_layer);
 }
+
+
 
 static void hands_update(Animation *anim, AnimationProgress dist_normalized) {
   //s_anim_time.hours = anim_percentage(dist_normalized, hours_to_minutes(s_last_time.hours));
@@ -499,8 +554,92 @@ static void hands_update(Animation *anim, AnimationProgress dist_normalized) {
   layer_mark_dirty(s_canvas_layer);
 }
 
+
+
+static void in_recv_handler(DictionaryIterator *iterator, void *context) {
+	//Get Tuples
+	Tuple *t = dict_read_first(iterator);
+	
+	while (t != NULL) {
+		switch(t->key) {
+			case KEY_BATTERY_SHOW:
+				if (strcmp(t->value->cstring, "1") == 0) {
+					user_show_battery = true;
+				}
+				else {
+					user_show_battery = false;
+				}
+			break;
+			
+			case KEY_BATTERY_COLOUR:
+				user_battery_colour = (int)*t->value->cstring;
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "batt color: %s", t->value->cstring);
+			break;
+			
+			case KEY_DATE_SHOW:
+				if (strcmp(t->value->cstring, "1") == 0) {
+					user_show_date = true;
+				}
+				else {
+					user_show_date = false;
+				}
+			break;
+			
+			case KEY_DATE_FILL_COLOUR:
+				user_date_fill = (int)*t->value->cstring;
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "date fill: %s", t->value->cstring);
+			break;
+			
+			case KEY_DATE_TEXT_COLOUR:
+				user_date_text_colour = (int)*t->value->cstring;
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "date text: %s", t->value->cstring);
+			break;
+			
+			case KEY_DATE_STROKE_COLOUR:
+				user_date_stroke_colour = (int)*t->value->cstring;
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "date stroke: %s", t->value->cstring);
+			break;
+			
+			case KEY_HOUR_FILL_COLOUR:
+				user_hour_fill = (int)*t->value->cstring;
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour fill: %s", t->value->cstring);
+			break;
+			
+			case KEY_HOUR_TEXT_COLOUR:
+				user_hour_text_colour = (int)*t->value->cstring;
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour text: %s", t->value->cstring);
+			break;
+			
+			case KEY_HOUR_STROKE_COLOUR:
+				user_hour_stroke_colour = (int)*t->value->cstring;
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour stroke: %s", t->value->cstring);
+			break;
+			
+			case KEY_MINUTE_STROKE_COLOUR:
+				user_minute_stroke_colour = (int)*t->value->cstring;
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "min stroke: %s", t->value->cstring);
+			break;
+			
+			case KEY_OUTLINE_COLOUR:
+				user_outline_colour = (int)*t->value->cstring;
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "outline color: %s", t->value->cstring);
+			break;
+			
+			case KEY_LANG:
+				user_lang = (int)*t->value->cstring;
+			break;
+		} // end switch
+
+		t = dict_read_next(iterator);
+	} // end while
+	
+	layer_mark_dirty(s_canvas_layer);
+} // end function
+
+
+
 static void init() {
-  srand(time(NULL));
+  //srand(time(NULL));
 
   time_t t = time(NULL);
   struct tm *time_now = localtime(&t);
@@ -526,12 +665,53 @@ static void init() {
   };
   animate(2 * ANIMATION_DURATION, ANIMATION_DELAY, &hands_impl, true);
 	
+	//**** read user values
+	user_lang = persist_exists(KEY_LANG) ? persist_read_int(KEY_LANG) : user_lang; 							
+	user_show_battery = persist_exists(KEY_BATTERY_SHOW) ? persist_read_bool(KEY_BATTERY_SHOW) : user_show_battery;
+	user_show_date = persist_exists(KEY_DATE_SHOW) ? persist_read_bool(KEY_DATE_SHOW) : user_show_date;
+	user_minute_stroke_colour = persist_exists(KEY_MINUTE_STROKE_COLOUR) ? persist_read_int(KEY_MINUTE_STROKE_COLOUR) : user_minute_stroke_colour; 
+	user_hour_stroke_colour = persist_exists(KEY_HOUR_STROKE_COLOUR) ? persist_read_int(KEY_HOUR_STROKE_COLOUR) : user_hour_stroke_colour;
+	user_battery_colour = persist_exists(KEY_BATTERY_COLOUR) ? persist_read_int(KEY_BATTERY_COLOUR) : user_battery_colour;
+	user_hour_fill = persist_exists(KEY_HOUR_FILL_COLOUR) ? persist_read_int(KEY_HOUR_FILL_COLOUR) : user_hour_fill;
+	user_hour_text_colour = persist_exists(KEY_HOUR_TEXT_COLOUR) ? persist_read_int(KEY_HOUR_TEXT_COLOUR) : user_hour_text_colour;
+	user_date_fill = persist_exists(KEY_DATE_FILL_COLOUR) ? persist_read_int(KEY_DATE_FILL_COLOUR) : user_date_fill;
+	user_date_text_colour = persist_exists(KEY_DATE_TEXT_COLOUR) ? persist_read_int(KEY_DATE_TEXT_COLOUR) : user_date_text_colour;
+	user_date_stroke_colour = persist_exists(KEY_DATE_STROKE_COLOUR) ? persist_read_int(KEY_DATE_STROKE_COLOUR) : user_date_stroke_colour;
+	user_outline_colour = persist_exists(KEY_DATE_STROKE_COLOUR) ? persist_read_int(KEY_DATE_STROKE_COLOUR) : user_outline_colour;
+	persist_read_data(KEY_TIME_COLOUR, &user_time_colour, sizeof(user_time_colour));
+	/*char time_colours[24 * 2 + 23];
+	for (int i = 0; i < 24; i++) {
+		
+	}*/
 	
-}
+	app_message_register_inbox_received((AppMessageInboxReceived) in_recv_handler);
+	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
+	
+} // end init
+
+
 
 static void deinit() {
-  window_destroy(s_main_window);
-}
+	window_destroy(s_main_window);
+	
+	//**** save user values 
+	persist_write_int(KEY_LANG, user_lang);
+	persist_write_bool(KEY_BATTERY_SHOW, user_show_battery);
+	persist_write_bool(KEY_DATE_SHOW, user_show_date);
+	persist_write_int(KEY_MINUTE_STROKE_COLOUR, user_minute_stroke_colour);
+	persist_write_int(KEY_HOUR_STROKE_COLOUR, user_hour_stroke_colour);
+	persist_write_int(KEY_BATTERY_COLOUR, user_battery_colour);
+	persist_write_int(KEY_HOUR_FILL_COLOUR, user_hour_fill);
+	persist_write_int(KEY_HOUR_TEXT_COLOUR, user_hour_text_colour);
+	persist_write_int(KEY_DATE_FILL_COLOUR, user_date_fill);
+	persist_write_int(KEY_DATE_TEXT_COLOUR, user_date_text_colour);
+	persist_write_int(KEY_DATE_STROKE_COLOUR, user_date_stroke_colour);
+	persist_write_int(KEY_OUTLINE_COLOUR, user_outline_colour);
+	persist_write_data(KEY_TIME_COLOUR, &user_time_colour, sizeof(user_time_colour));
+	
+} // end deinit
+
+
 
 int main() {
   init();
