@@ -304,6 +304,7 @@ static void tick_handler(struct tm *tick_time, TimeUnits changed) {
 static void update_proc(Layer *layer, GContext *ctx) {
 	// Don't use current time while animating
   	Time mode_time = (s_animating) ? s_anim_time : s_last_time;
+	s_radius = s_animating ? s_radius : FINAL_RADIUS;
 	
 	// Get a tm structure
 	time_t temp = time(NULL); 
@@ -440,12 +441,12 @@ static void update_proc(Layer *layer, GContext *ctx) {
 	
 	
 	
-	// fill clockface
+	// fill hour 
 	graphics_context_set_fill_color(ctx, (GColor)all_colours[user_hour_fill]);
 	graphics_fill_circle(ctx, s_center, s_radius);
 	
   	
-	// draw hour circle 
+	// draw hour stroke 
 	graphics_context_set_stroke_color(ctx, (GColor)all_colours[user_hour_stroke_colour]);
 	graphics_context_set_stroke_width(ctx, minute_stroke);
   	graphics_draw_circle(ctx, s_center, s_radius);
@@ -555,10 +556,84 @@ static void hands_update(Animation *anim, AnimationProgress dist_normalized) {
 }
 
 
+char *
+strtok(s, delim)
+	register char *s;
+	register const char *delim;
+{
+	register char *spanp;
+	register int c, sc;
+	char *tok;
+	static char *last;
+
+
+	if (s == NULL && (s = last) == NULL)
+		return (NULL);
+
+	/*
+	 * Skip (span) leading delimiters (s += strspn(s, delim), sort of).
+	 */
+cont:
+	c = *s++;
+	for (spanp = (char *)delim; (sc = *spanp++) != 0;) {
+		if (c == sc)
+			goto cont;
+	}
+
+	if (c == 0) {		/* no non-delimiter characters */
+		last = NULL;
+		return (NULL);
+	}
+	tok = s - 1;
+
+	/*
+	 * Scan token (scan for delimiters: s += strcspn(s, delim), sort of).
+	 * Note that delim must have one NUL; we stop if we see that, too.
+	 */
+	for (;;) {
+		c = *s++;
+		spanp = (char *)delim;
+		do {
+			if ((sc = *spanp++) == c) {
+				if (c == 0)
+					s = NULL;
+				else
+					s[-1] = 0;
+				last = s;
+				return (tok);
+			}
+		} while (sc != 0);
+	}
+	/* NOTREACHED */
+}
+
+
+int my_getnbr(char *str) {
+	int           result;
+	int           puiss;
+
+	result = 0;
+	puiss = 1;
+	while (('-' == (*str)) || ((*str) == '+'))
+	{
+		if (*str == '-')
+			puiss = puiss * -1;
+		str++;
+	}
+	while ((*str >= '0') && (*str <= '9'))
+	{
+		result = (result * 10) + ((*str) - '0');
+		str++;
+	}
+	return (result * puiss);
+}
+
 
 static void in_recv_handler(DictionaryIterator *iterator, void *context) {
 	//Get Tuples
 	Tuple *t = dict_read_first(iterator);
+	int i = 0;
+	char *p;
 	
 	while (t != NULL) {
 		switch(t->key) {
@@ -573,7 +648,7 @@ static void in_recv_handler(DictionaryIterator *iterator, void *context) {
 			
 			case KEY_BATTERY_COLOUR:
 				user_battery_colour = (int)*t->value->cstring;
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "batt color: %s", t->value->cstring);
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "batt color: %d", user_battery_colour);
 			break;
 			
 			case KEY_DATE_SHOW:
@@ -587,46 +662,64 @@ static void in_recv_handler(DictionaryIterator *iterator, void *context) {
 			
 			case KEY_DATE_FILL_COLOUR:
 				user_date_fill = (int)*t->value->cstring;
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "date fill: %s", t->value->cstring);
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "date fill: %d", user_date_fill);
 			break;
 			
 			case KEY_DATE_TEXT_COLOUR:
 				user_date_text_colour = (int)*t->value->cstring;
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "date text: %s", t->value->cstring);
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "date text: %d", user_date_text_colour);
 			break;
 			
 			case KEY_DATE_STROKE_COLOUR:
 				user_date_stroke_colour = (int)*t->value->cstring;
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "date stroke: %s", t->value->cstring);
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "date stroke: %d", user_date_stroke_colour);
 			break;
 			
 			case KEY_HOUR_FILL_COLOUR:
 				user_hour_fill = (int)*t->value->cstring;
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour fill: %s", t->value->cstring);
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour fill: %d", user_hour_fill);
 			break;
 			
 			case KEY_HOUR_TEXT_COLOUR:
 				user_hour_text_colour = (int)*t->value->cstring;
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour text: %s", t->value->cstring);
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour text: %d", user_hour_text_colour);
 			break;
 			
 			case KEY_HOUR_STROKE_COLOUR:
 				user_hour_stroke_colour = (int)*t->value->cstring;
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour stroke: %s", t->value->cstring);
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour stroke: %d", user_hour_stroke_colour);
 			break;
 			
 			case KEY_MINUTE_STROKE_COLOUR:
 				user_minute_stroke_colour = (int)*t->value->cstring;
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "min stroke: %s", t->value->cstring);
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "min stroke: %d", user_minute_stroke_colour);
 			break;
 			
 			case KEY_OUTLINE_COLOUR:
 				user_outline_colour = (int)*t->value->cstring;
-				APP_LOG(APP_LOG_LEVEL_DEBUG, "outline color: %s", t->value->cstring);
+				APP_LOG(APP_LOG_LEVEL_DEBUG, "outline color: %d", user_outline_colour);
 			break;
 			
 			case KEY_LANG:
 				user_lang = (int)*t->value->cstring;
+			break;
+			
+			case KEY_TIME_COLOUR:
+				//char *array[25];
+				i = 0;
+				char* new_str = malloc(strlen(t->value->cstring));
+  				strcpy(new_str, t->value->cstring);
+				//APP_LOG(APP_LOG_LEVEL_DEBUG, "time color cstr: %s", new_str);
+				
+				p = strtok(new_str, ",");
+				
+				while (p != NULL) {
+					user_time_colour[i++] = my_getnbr(p);
+					p = strtok(NULL, ",");
+					APP_LOG(APP_LOG_LEVEL_DEBUG, "time color %d: %d", (i-1), user_time_colour[i-1]);
+				}
+				
+				//free(new_str);
 			break;
 		} // end switch
 
@@ -677,7 +770,7 @@ static void init() {
 	user_date_fill = persist_exists(KEY_DATE_FILL_COLOUR) ? persist_read_int(KEY_DATE_FILL_COLOUR) : user_date_fill;
 	user_date_text_colour = persist_exists(KEY_DATE_TEXT_COLOUR) ? persist_read_int(KEY_DATE_TEXT_COLOUR) : user_date_text_colour;
 	user_date_stroke_colour = persist_exists(KEY_DATE_STROKE_COLOUR) ? persist_read_int(KEY_DATE_STROKE_COLOUR) : user_date_stroke_colour;
-	user_outline_colour = persist_exists(KEY_DATE_STROKE_COLOUR) ? persist_read_int(KEY_DATE_STROKE_COLOUR) : user_outline_colour;
+	user_outline_colour = persist_exists(KEY_OUTLINE_COLOUR) ? persist_read_int(KEY_OUTLINE_COLOUR) : user_outline_colour;
 	persist_read_data(KEY_TIME_COLOUR, &user_time_colour, sizeof(user_time_colour));
 	/*char time_colours[24 * 2 + 23];
 	for (int i = 0; i < 24; i++) {
