@@ -23,6 +23,7 @@
 #define KEY_DATE_TEXT_COLOUR 10
 #define KEY_DATE_FILL_COLOUR 11
 #define KEY_DATE_STROKE_COLOUR 12
+#define KEY_MINUTE_SHOW 13
 
 
 
@@ -142,6 +143,7 @@ static BatteryChargeState charge_state;
 static int user_lang = 1; 							//default to english ??? does strftime do localization??
 static bool user_show_battery = true;				//default to ON
 static bool user_show_date = true;					//default to ON
+static bool user_show_minute = true;				//default to ON
 static int user_minute_stroke_colour = 2; 			//default black (in "all-colours")
 //static int user_hour_minute_outline_colour = 61; 	//default white
 static int user_battery_colour = 50; 				//default red
@@ -427,7 +429,7 @@ static void update_proc(Layer *layer, GContext *ctx) {
   	graphics_draw_circle(ctx, s_center, s_radius);
 	
 	// draw minute line
-	if (!s_animating) {
+	if (!s_animating && user_show_minute) {
 		//outline first, wider
 		graphics_context_set_stroke_color(ctx, (GColor)all_colours[user_outline_colour]); //white
 		graphics_context_set_stroke_width(ctx, minute_stroke + border_stroke);
@@ -690,6 +692,15 @@ static void in_recv_handler(DictionaryIterator *iterator, void *context) {
 				APP_LOG(APP_LOG_LEVEL_DEBUG, "hour stroke: %d", user_hour_stroke_colour);
 			break;
 			
+			case KEY_MINUTE_SHOW:
+				if (strcmp(t->value->cstring, "1") == 0) {
+					user_show_minute = true;
+				}
+				else {
+					user_show_minute = false;
+				}
+			break;
+			
 			case KEY_MINUTE_STROKE_COLOUR:
 				user_minute_stroke_colour = (int)*t->value->cstring;
 				APP_LOG(APP_LOG_LEVEL_DEBUG, "min stroke: %d", user_minute_stroke_colour);
@@ -762,6 +773,7 @@ static void init() {
 	user_lang = persist_exists(KEY_LANG) ? persist_read_int(KEY_LANG) : user_lang; 							
 	user_show_battery = persist_exists(KEY_BATTERY_SHOW) ? persist_read_bool(KEY_BATTERY_SHOW) : user_show_battery;
 	user_show_date = persist_exists(KEY_DATE_SHOW) ? persist_read_bool(KEY_DATE_SHOW) : user_show_date;
+	user_show_minute = persist_exists(KEY_MINUTE_SHOW) ? persist_read_bool(KEY_MINUTE_SHOW) : user_show_minute;
 	user_minute_stroke_colour = persist_exists(KEY_MINUTE_STROKE_COLOUR) ? persist_read_int(KEY_MINUTE_STROKE_COLOUR) : user_minute_stroke_colour; 
 	user_hour_stroke_colour = persist_exists(KEY_HOUR_STROKE_COLOUR) ? persist_read_int(KEY_HOUR_STROKE_COLOUR) : user_hour_stroke_colour;
 	user_battery_colour = persist_exists(KEY_BATTERY_COLOUR) ? persist_read_int(KEY_BATTERY_COLOUR) : user_battery_colour;
@@ -791,6 +803,7 @@ static void deinit() {
 	persist_write_int(KEY_LANG, user_lang);
 	persist_write_bool(KEY_BATTERY_SHOW, user_show_battery);
 	persist_write_bool(KEY_DATE_SHOW, user_show_date);
+	persist_write_bool(KEY_MINUTE_SHOW, user_show_minute);
 	persist_write_int(KEY_MINUTE_STROKE_COLOUR, user_minute_stroke_colour);
 	persist_write_int(KEY_HOUR_STROKE_COLOUR, user_hour_stroke_colour);
 	persist_write_int(KEY_BATTERY_COLOUR, user_battery_colour);

@@ -9,7 +9,7 @@ Pebble.addEventListener('ready', function(e) {
 
 Pebble.addEventListener('showConfiguration', function(e) {
 	// Show config page
-	Pebble.openURL('http://toes.tdsb.on.ca/apps/pebble/config.html?config=' + encodeURIComponent(JSON.stringify(dict)));
+	Pebble.openURL('http://pointlineplane.ca/fogies/config.html?config=' + encodeURIComponent(JSON.stringify(dict)));
 });
 
 

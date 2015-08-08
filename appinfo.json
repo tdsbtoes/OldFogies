@@ -10,6 +10,7 @@
         "KEY_HOUR_STROKE_COLOUR": 7,
         "KEY_HOUR_TEXT_COLOUR": 9,
         "KEY_LANG": 4,
+        "KEY_MINUTE_SHOW": 13,
         "KEY_MINUTE_STROKE_COLOUR": 6,
         "KEY_OUTLINE_COLOUR": 0,
         "KEY_TIME_COLOUR": 3
@@ -29,7 +30,7 @@
         "basalt"
     ],
     "uuid": "54f2e0ed-1bce-48ea-8420-060024d40172",
-    "versionLabel": "1.79",
+    "versionLabel": "1.81",
     "watchapp": {
         "watchface": true
     }
